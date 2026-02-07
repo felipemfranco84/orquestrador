@@ -9,37 +9,38 @@
     <div class="max-w-5xl mx-auto">
         <h1 class="text-3xl font-bold mb-8 flex items-center gap-3">🚀 Centro de Comando</h1>
         
-        {% if message %}<div class="bg-blue-600 p-4 rounded-xl mb-6 shadow-lg">{{ message }}</div>{% endif %}
+        {% if message %}<div class="bg-blue-600/20 border border-blue-500 text-blue-100 p-4 rounded-xl mb-6">{{ message }}</div>{% endif %}
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="bg-[#1e293b] p-6 rounded-3xl border border-slate-700 shadow-xl">
-                <h2 class="text-xl font-bold mb-6">Novo Projeto</h2>
+            <div class="bg-[#1e293b] p-6 rounded-3xl border border-slate-700">
+                <h2 class="text-xl font-bold mb-6 text-white">Novo Projeto</h2>
                 <form action="criar" method="post" class="space-y-4">
                     <input type="text" name="nome" placeholder="Nome" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl" required>
                     <input type="text" name="repo" placeholder="URL SSH GitHub" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl" required>
-                    <button class="w-full bg-blue-600 p-3 rounded-xl font-bold hover:bg-blue-500 shadow-lg shadow-blue-900/20">Criar Agora</button>
+                    <button class="w-full bg-blue-600 p-3 rounded-xl font-bold hover:bg-blue-500 transition-all">Criar Agora</button>
                 </form>
             </div>
 
-            <div class="lg:col-span-2 bg-[#1e293b] rounded-3xl border border-slate-700 shadow-xl overflow-hidden">
+            <div class="lg:col-span-2 bg-[#1e293b] rounded-3xl border border-slate-700 overflow-hidden">
                 <table class="w-full text-left">
-                    <thead class="bg-slate-800/50">
-                        <tr><th class="p-5 text-xs font-bold uppercase text-slate-400">Projeto</th><th class="p-5 text-xs font-bold uppercase text-slate-400">Status</th><th class="p-5 text-right text-xs font-bold uppercase text-slate-400">Ação</th></tr>
+                    <thead class="bg-slate-800/50 text-slate-400 text-xs uppercase">
+                        <tr><th class="p-5">PROJETO</th><th class="p-5">STATUS</th><th class="p-5 text-right">AÇÕES</th></tr>
                     </thead>
                     <tbody class="divide-y divide-slate-700/50">
                         {% for p in projetos %}
-                        <tr class="hover:bg-slate-700/20 transition-colors">
-                            <td class="p-5 font-bold text-white">{{ p.nome }} <span class="block text-xs font-mono text-slate-500">Porta: {{ p.porta }}</span></td>
+                        <tr class="hover:bg-slate-700/20">
+                            <td class="p-5 font-bold text-white">{{ p.nome }} <span class="block text-xs font-mono text-slate-500 italic">Porta: {{ p.porta }}</span></td>
                             <td class="p-5">
-                                <span class="flex items-center gap-2 {{ 'text-green-400' if p.status == 'online' else 'text-red-400' }}">
-                                    <span class="w-2 h-2 rounded-full {{ 'bg-green-400' if p.status == 'online' else 'bg-red-400' }}"></span>
+                                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold {{ 'bg-green-500/10 text-green-400' if p.status == 'online' else 'bg-red-500/10 text-red-400' }}">
+                                    <span class="w-2 h-2 rounded-full {{ 'bg-green-500' if p.status == 'online' else 'bg-red-500' }}"></span>
                                     {{ p.status.upper() }}
                                 </span>
                             </td>
-                            <td class="p-5 text-right">
+                            <td class="p-5 text-right flex justify-end gap-6 pt-7">
+                                <a href="{{ p.url }}" target="_blank" class="text-blue-400 hover:text-blue-300 font-medium text-sm">Abrir</a>
                                 <form action="remover" method="post" onsubmit="return confirm('Deseja apagar {{ p.nome }}?')">
                                     <input type="hidden" name="nome" value="{{ p.nome }}">
-                                    <button class="text-slate-500 hover:text-red-500 font-medium">Remover</button>
+                                    <button class="text-slate-500 hover:text-red-500 text-sm">Remover</button>
                                 </form>
                             </td>
                         </tr>
