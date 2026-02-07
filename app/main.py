@@ -6,7 +6,7 @@ import re
 import time
 import logging
 
-# v7.8.0 - Correção de Argumentos do Shell [cite: 2026-01-25]
+# v7.9.0 - Técnica de Sequência de Entrada (Input Sequencing) [cite: 2026-01-25]
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -44,9 +44,9 @@ async def home(request: Request, msg: str = None, debug_log: str = None):
 async def remover(nome: str = Form(...)):
     try:
         nome_valido = nome.strip()
-        # MUDANÇA CRÍTICA: O nome do projeto vai como argumento direto do script, 
-        # e o 'echo S' alimenta o prompt interno do script.
-        cmd = f"echo 'S' | sudo {SCRIPTS_DIR}/remover_projeto.sh {nome_valido}"
+        # MUDANÇA TOTAL: Passamos o nome E a confirmação S via printf. 
+        # Isso garante que o primeiro 'read' do script pegue o nome e o segundo pegue o 'S'.
+        cmd = f"printf '{nome_valido}\nS\n' | sudo {SCRIPTS_DIR}/remover_projeto.sh"
         
         processo = subprocess.run(cmd, shell=True, capture_output=True, text=True)
         
@@ -58,7 +58,7 @@ async def remover(nome: str = Form(...)):
 
 @app.post("/criar")
 async def criar(nome: str = Form(...), repo: str = Form(...)):
-    # printf passa os argumentos na ordem que o script pede (nome depois repo)
+    # printf passa o nome e depois o repositório
     cmd = f"printf '{nome}\n{repo}\n' | sudo {SCRIPTS_DIR}/novo_projeto.sh"
     subprocess.Popen(cmd, shell=True)
-    return RedirectResponse(url="/?msg=Criando projeto...", status_code=303)
+    return RedirectResponse(url="/?msg=Criando projeto... aguarde 15s", status_code=303)
