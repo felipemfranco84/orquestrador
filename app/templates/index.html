@@ -2,62 +2,36 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Centro de Comando</title>
+    <title>Processando...</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <meta http-equiv="refresh" content="{{ tempo }};url=/">
 </head>
-<body class="bg-[#0f172a] text-slate-200 p-6 md:p-12">
-    <div class="max-w-5xl mx-auto">
-        <header class="flex justify-between items-center mb-10">
-            <h1 class="text-3xl font-bold text-white">🚀 Centro de Comando</h1>
-            <a href="auditoria" target="_blank" class="text-xs text-slate-500 hover:text-blue-400">Ver Pastas Reais</a>
-        </header>
+<body class="bg-[#0f172a] text-white flex flex-col items-center justify-center h-screen">
+    <div class="text-center space-y-6 max-w-md w-full p-8">
+        <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 border-opacity-50"></div>
+        <h1 class="text-2xl font-bold italic">{{ acao }}...</h1>
+        <p class="text-slate-400 text-sm">Aguarde enquanto o servidor Linux processa sua solicitação.</p>
         
-        {% if debug_log %}
-        <div class="mb-8 bg-black border border-blue-500/30 p-6 rounded-2xl shadow-2xl">
-            <pre class="text-xs font-mono text-gray-400 overflow-x-auto whitespace-pre-wrap">{{ debug_log }}</pre>
+        <div class="w-full bg-slate-800 rounded-full h-2.5 mt-6">
+            <div id="progress" class="bg-blue-600 h-2.5 rounded-full transition-all duration-1000" style="width: 0%"></div>
         </div>
-        {% endif %}
-
-        {% if message %}<div class="bg-blue-600/20 border border-blue-500 text-blue-100 p-4 rounded-2xl mb-8">{{ message }}</div>{% endif %}
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
-            <aside class="bg-[#1e293b] p-8 rounded-3xl border border-slate-700 shadow-xl">
-                <h2 class="text-xl font-bold mb-6">Novo Projeto</h2>
-                <form action="criar" method="post" class="space-y-4">
-                    <input type="text" name="nome" placeholder="nome_do_app" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl outline-none" required>
-                    <input type="text" name="repo" placeholder="git@github.com:..." class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl outline-none" required>
-                    <button class="w-full bg-blue-600 py-3 rounded-xl font-bold">Lançar Projeto</button>
-                </form>
-            </aside>
-
-            <main class="lg:col-span-2 bg-[#1e293b] rounded-3xl border border-slate-700 shadow-xl overflow-hidden">
-                <table class="w-full text-left">
-                    <thead class="bg-slate-800/50 text-xs font-bold uppercase text-slate-400">
-                        <tr><th class="p-5">Projeto</th><th class="p-5">Status</th><th class="p-5 text-right text-xs">Ação</th></tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-700/50">
-                        {% for p in projetos %}
-                        <tr class="hover:bg-slate-700/20">
-                            <td class="p-5 font-bold text-white">{{ p.nome }}</td>
-                            <td class="p-5">
-                                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold {{ 'bg-green-500/10 text-green-400' if p.status == 'online' else 'bg-red-500/10 text-red-400' }}">
-                                    <span class="w-2 h-2 rounded-full {{ 'bg-green-500' if p.status == 'online' else 'bg-red-500' }}"></span>
-                                    {{ p.status.upper() }}
-                                </span>
-                            </td>
-                            <td class="p-5 text-right flex justify-end gap-6 items-center">
-                                <a href="{{ p.url }}" target="_blank" class="text-blue-400 hover:text-blue-300 font-semibold text-sm">Abrir</a>
-                                <form action="remover" method="post" onsubmit="return confirm('Deseja apagar {{ p.nome }}?')">
-                                    <input type="hidden" name="nome" value="{{ p.nome }}">
-                                    <button class="text-slate-500 hover:text-red-500 text-sm">Remover</button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </main>
-        </div>
+        <p class="text-xs text-slate-500" id="timer">Voltando em {{ tempo }} segundos</p>
     </div>
+
+    <script>
+        let tempo = {{ tempo }};
+        let progresso = 0;
+        const step = 100 / tempo;
+        const bar = document.getElementById('progress');
+        const timerTxt = document.getElementById('timer');
+
+        const interval = setInterval(() => {
+            progresso += step;
+            tempo--;
+            bar.style.width = progresso + '%';
+            timerTxt.innerText = `Voltando em ${Math.max(0, tempo)} segundos`;
+            if (tempo <= 0) clearInterval(interval);
+        }, 1000);
+    </script>
 </body>
 </html>
