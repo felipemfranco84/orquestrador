@@ -67,46 +67,50 @@
                     <h2 class="text-xl font-bold mb-6 text-white text-center">Novo Projeto</h2>
                     <form action="criar" method="post" onsubmit="travaBotao(this.querySelector('button'), 'Instalando')">
                         <div class="space-y-4">
-                            <input type="text" name="nome" placeholder="nome_do_projeto" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl outline-none" required>
-                            <input type="text" name="repo" placeholder="git@github.com:felipemfranco84/repo.git" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl outline-none text-xs" required>
-                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-xl font-bold transition-all">Lançar Projeto</button>
+                            <input type="text" name="nome" placeholder="ex: zendesk_manager" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl outline-none" required>
+                            <input type="text" name="repo" placeholder="git@github.com:felipemfranco84/repo.git" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl outline-none text-[10px]" required>
+                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-500/20">Lançar Projeto</button>
                         </div>
                     </form>
                 </aside>
 
                 <div class="bg-blue-500/10 border border-blue-500/20 p-6 rounded-3xl">
                     <h3 class="text-blue-400 text-sm font-bold mb-3 flex items-center gap-2">
-                        💡 Como ativar Auto-Deploy:
+                        🛡️ Guia de Auto-Deploy
                     </h3>
-                    <ul class="text-xs text-slate-400 space-y-3">
-                        <li>1. No GitHub, vá em <b>Settings > Webhooks</b>.</li>
-                        <li>2. Payload URL: <code class="bg-slate-900 px-1 text-blue-300">http://34.11.132.26/webhook/update</code></li>
-                        <li>3. Content type: <code class="text-blue-300">application/json</code>.</li>
-                        <li>4. Clique em <b>Add Webhook</b> e pronto!</li>
+                    <p class="text-[10px] text-slate-400 mb-4">Configure no GitHub para cada novo projeto:</p>
+                    <ul class="text-[10px] text-slate-300 space-y-3">
+                        <li>1. <span class="text-slate-500">Payload URL:</span><br>
+                            <code class="bg-black/40 p-1 rounded text-blue-300 block mt-1 select-all">http://34.11.132.26/webhook/update</code>
+                        </li>
+                        <li>2. <span class="text-slate-500">Content type:</span><br>
+                            <b class="text-white">application/json</b>
+                        </li>
+                        <li>3. <span class="text-slate-500">Secret:</span> <i class="text-slate-500 italic">Deixe em branco</i></li>
                     </ul>
                 </div>
             </div>
 
-            <main class="lg:col-span-2 bg-[#1e293b] rounded-3xl border border-slate-700 shadow-2xl overflow-hidden">
+            <main class="lg:col-span-2 bg-[#1e293b] rounded-3xl border border-slate-700 shadow-2xl overflow-hidden h-fit">
                 <table class="w-full text-left">
                     <thead class="bg-slate-800/50 text-xs font-bold uppercase text-slate-400">
                         <tr><th class="p-5">Projeto</th><th class="p-5">Status</th><th class="p-5 text-right">Ação</th></tr>
                     </thead>
                     <tbody class="divide-y divide-slate-700/50">
                         {% for p in projetos %}
-                        <tr class="hover:bg-slate-700/20">
+                        <tr class="hover:bg-slate-700/20 transition-colors">
                             <td class="p-5 font-bold text-white">{{ p.nome }}</td>
                             <td class="p-5">
-                                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold {{ 'bg-green-500/10 text-green-400' if p.status == 'online' else 'bg-red-500/10 text-red-400' }}">
-                                    <span class="w-2 h-2 rounded-full {{ 'bg-green-500' if p.status == 'online' else 'bg-red-500' }}"></span>
+                                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black {{ 'bg-green-500/10 text-green-400 border border-green-500/20' if p.status == 'online' else 'bg-red-500/10 text-red-400 border border-red-500/20' }}">
+                                    <span class="w-1.5 h-1.5 rounded-full {{ 'bg-green-500 animate-pulse' if p.status == 'online' else 'bg-red-500' }}"></span>
                                     {{ p.status.upper() }}
                                 </span>
                             </td>
                             <td class="p-5 text-right flex justify-end gap-6 items-center">
-                                <a href="{{ p.url }}" target="_blank" class="text-blue-400 hover:text-blue-300 font-bold text-sm">Abrir</a>
+                                <a href="{{ p.url }}" target="_blank" class="text-blue-400 hover:text-blue-300 font-bold text-xs uppercase tracking-widest">Abrir</a>
                                 <form action="remover" method="post" onsubmit="return confirm('Deseja deletar {{ p.nome }}?') && travaBotao(this.querySelector('button'), 'Deletando')">
                                     <input type="hidden" name="nome" value="{{ p.nome }}">
-                                    <button type="submit" class="text-slate-500 hover:text-red-500 text-sm font-medium">Remover</button>
+                                    <button type="submit" class="text-slate-500 hover:text-red-500 text-[10px] font-bold uppercase transition-colors">Remover</button>
                                 </form>
                             </td>
                         </tr>
