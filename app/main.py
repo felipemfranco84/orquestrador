@@ -7,7 +7,7 @@ import time
 import os
 import psutil
 
-# v17.1.0 - Orquestrador com Telemetria em Tempo Real [cite: 2026-01-25]
+# v17.3.0 - Orquestrador com Webhook e Telemetria
 app = FastAPI()
 templates = Jinja2Templates(directory="app/templates")
 SCRIPTS_DIR = "/home/felicruel/scripts"
@@ -67,3 +67,22 @@ async def criar(nome: str = Form(...), repo: str = Form(...)):
     os.system(f"printf '{nome_limpo}\n{repo}\n' | sudo {SCRIPTS_DIR}/novo_projeto.sh")
     time.sleep(5)
     return RedirectResponse(url="/orquestrador/", status_code=303)
+
+# --- NOVA ROTA ADITIVA: WEBHOOK ---
+@app.post("/webhook/update")
+async def receber_webhook(request: Request):
+    """
+    Recebe o sinal do GitHub e dispara a atualização automática.
+    """
+    try:
+        payload = await request.json()
+        projeto = payload.get("repository", {}).get("name")
+        
+        if projeto:
+            # Dispara o script de deploy em background.
+            subprocess.Popen([f"{SCRIPTS_DIR}/deploy_git.sh", projeto, "main"])
+            return {"status": "sucesso", "projeto": projeto, "acao": "atualizando"}
+            
+        return {"status": "ignorado", "motivo": "payload sem identificação"}
+    except Exception as e:
+        return {"status": "erro", "detalhe": str(e)}
