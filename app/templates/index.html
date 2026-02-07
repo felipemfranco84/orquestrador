@@ -8,29 +8,28 @@
 </head>
 <body class="bg-[#0f172a] text-white flex flex-col items-center justify-center h-screen">
     <div class="text-center space-y-6 max-w-md w-full p-8">
-        <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 border-opacity-50"></div>
-        <h1 class="text-2xl font-bold italic">{{ acao }}...</h1>
-        <p class="text-slate-400 text-sm">Aguarde enquanto o servidor Linux processa sua solicitação.</p>
+        <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+        <h1 class="text-2xl font-bold italic">{{ acao }}</h1>
+        <p class="text-slate-400 text-sm">Sincronizando arquivos com o servidor...</p>
         
-        <div class="w-full bg-slate-800 rounded-full h-2.5 mt-6">
-            <div id="progress" class="bg-blue-600 h-2.5 rounded-full transition-all duration-1000" style="width: 0%"></div>
+        <div class="w-full bg-slate-800 rounded-full h-2 mt-6">
+            <div id="progress" class="bg-blue-600 h-2 rounded-full transition-all duration-1000" style="width: 0%"></div>
         </div>
-        <p class="text-xs text-slate-500" id="timer">Voltando em {{ tempo }} segundos</p>
+        <p class="text-xs text-slate-500" id="timer">Redirecionando em {{ tempo }} segundos...</p>
     </div>
 
     <script>
-        let tempo = {{ tempo }};
-        let progresso = 0;
-        const step = 100 / tempo;
+        let total = parseInt("{{ tempo }}") || 5;
+        let atual = total;
         const bar = document.getElementById('progress');
         const timerTxt = document.getElementById('timer');
 
         const interval = setInterval(() => {
-            progresso += step;
-            tempo--;
-            bar.style.width = progresso + '%';
-            timerTxt.innerText = `Voltando em ${Math.max(0, tempo)} segundos`;
-            if (tempo <= 0) clearInterval(interval);
+            atual--;
+            let perc = ((total - atual) / total) * 100;
+            bar.style.width = perc + '%';
+            timerTxt.innerText = `Redirecionando em ${Math.max(0, atual)} segundos...`;
+            if (atual <= 0) clearInterval(interval);
         }, 1000);
     </script>
 </body>
