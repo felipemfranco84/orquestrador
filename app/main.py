@@ -5,8 +5,9 @@ import subprocess
 import re
 import time
 import logging
+import os
 
-# Log de decisão: v14.0.0 - Foco em Sincronia e Roteamento Fixo [cite: 2026-01-25]
+# v15.0.0 - Foco em Persistência e Roteamento Absoluto
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -15,13 +16,13 @@ templates = Jinja2Templates(directory="app/templates")
 SCRIPTS_DIR = "/home/felicruel/scripts"
 
 def limpar_nome(texto):
-    """Garante que o nome do projeto seja processado sem códigos de cor"""
+    """Garante que o nome do projeto seja processado sem lixo visual"""
     return re.sub(r'\x1b\[[0-9;]*m', '', texto).strip()
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request, msg: str = None):
     try:
-        # Busca a lista oficial de projetos ativos
+        # Pega a lista oficial do servidor
         result_raw = subprocess.check_output([f"{SCRIPTS_DIR}/listar_projetos.sh"], shell=True).decode()
         projetos = []
         for linha in result_raw.split('\n'):
@@ -29,11 +30,12 @@ async def home(request: Request, msg: str = None):
             if any(s in l_limpa.upper() for s in ["ONLINE", "OFFLINE"]):
                 partes = l_limpa.split()
                 if len(partes) >= 1:
+                    nome_puro = partes[0]
                     projetos.append({
-                        "nome": partes[0],
+                        "nome": nome_puro,
                         "porta": partes[1] if len(partes) > 1 else "---",
                         "status": "online" if "ONLINE" in l_limpa.upper() else "offline",
-                        "url": f"http://34.11.132.26/{partes[0]}/"
+                        "url": f"http://34.11.132.26/{nome_puro}/"
                     })
         return templates.TemplateResponse("index.html", {"request": request, "projetos": projetos, "message": msg})
     except Exception as e:
@@ -43,21 +45,28 @@ async def home(request: Request, msg: str = None):
 @app.post("/remover")
 async def remover(nome: str = Form(...)):
     try:
-        # Sincroniza: espera o script remover fisicamente os arquivos
-        subprocess.run(f"echo 'S' | sudo {SCRIPTS_DIR}/remover_projeto.sh {nome}", shell=True, check=True)
-        time.sleep(3) # Tempo para o Nginx recarregar a rota
-        return RedirectResponse(url="/orquestrador/?msg=Projeto removido com sucesso", status_code=303)
+        # Comando de força bruta: garante que o nome vá limpo e confirme S
+        nome_valido = "".join(filter(lambda x: x.isalnum() or x in "-_", nome))
+        cmd = f"printf '{nome_valido}\nS\n' | sudo {SCRIPTS_DIR}/remover_projeto.sh"
+        
+        # Execução síncrona aguardando o fim do processo Linux
+        os.system(cmd)
+        time.sleep(4) # Tempo vital para o Nginx e Systemd estabilizarem
+        
+        # Redirecionamento absoluto para evitar o erro da imagem f0703f
+        return RedirectResponse(url="/orquestrador/", status_code=303)
     except Exception as e:
-        logger.error(f"Falha ao remover: {e}")
-        return RedirectResponse(url="/orquestrador/?msg=Erro ao remover projeto", status_code=303)
+        return RedirectResponse(url="/orquestrador/?msg=Erro técnico na remoção", status_code=303)
 
 @app.post("/criar")
 async def criar(nome: str = Form(...), repo: str = Form(...)):
     try:
-        # Sincroniza: espera a instalação completa das dependências
-        subprocess.run(f"printf '{nome}\n{repo}\n' | sudo {SCRIPTS_DIR}/novo_projeto.sh", shell=True, check=True)
-        time.sleep(4) # Tempo extra para o serviço Python subir
-        return RedirectResponse(url=f"/orquestrador/?msg=Projeto {nome} criado e online", status_code=303)
+        nome_limpo = "".join(filter(lambda x: x.isalnum() or x in "-_", nome))
+        # printf passa os argumentos na ordem: nome e depois repositório
+        cmd = f"printf '{nome_limpo}\n{repo}\n' | sudo {SCRIPTS_DIR}/novo_projeto.sh"
+        
+        os.system(cmd)
+        time.sleep(5) # Aguarda a instalação pesada do app
+        return RedirectResponse(url="/orquestrador/", status_code=303)
     except Exception as e:
-        logger.error(f"Falha ao criar: {e}")
-        return RedirectResponse(url="/orquestrador/?msg=Erro ao criar projeto", status_code=303)
+        return RedirectResponse(url="/orquestrador/?msg=Erro ao criar app", status_code=303)
