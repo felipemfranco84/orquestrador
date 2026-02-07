@@ -5,7 +5,7 @@ import subprocess
 import logging
 import re
 
-# Padrão MAJOR.MINOR.PATCH: v6.9.1
+# Padrão MAJOR.MINOR.PATCH: v6.9.1 [cite: 2026-01-25]
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -61,4 +61,9 @@ async def criar(nome: str = Form(...), repo: str = Form(...)):
 @app.post("/remover")
 async def remover(nome: str = Form(...)):
     try:
-        # Exec
+        # Executa remoção automatizada (S)
+        subprocess.run(f"echo 'S' | {SCRIPTS_DIR}/remover_projeto.sh {nome}", shell=True)
+        return RedirectResponse(url=f"/?msg=Projeto {nome} removido com sucesso", status_code=303)
+    except Exception as e:
+        logger.error(f"Erro ao remover: {str(e)}")
+        return RedirectResponse(url="/?msg=Erro ao remover projeto", status_code=303)
