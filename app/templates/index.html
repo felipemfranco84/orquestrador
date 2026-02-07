@@ -11,31 +11,32 @@
             btn.classList.add('opacity-50');
         }
 
-        // Função de atualização automática
+        // Script de Atualização Automática
         async function atualizarStats() {
             try {
+                // Busca dados no endpoint de API
                 const response = await fetch('api/stats');
                 const data = await response.json();
                 
-                // Atualiza CPU
+                // Atualiza elementos HTML dinamicamente
                 document.getElementById('cpu-val').innerText = data.cpu + '%';
                 document.getElementById('cpu-bar').style.width = data.cpu + '%';
                 
-                // Atualiza RAM
                 document.getElementById('ram-val').innerText = data.ram + '%';
                 document.getElementById('ram-bar').style.width = data.ram + '%';
                 
-                // Atualiza DISCO
                 document.getElementById('disk-val').innerText = data.disk + '%';
                 document.getElementById('disk-bar').style.width = data.disk + '%';
-            } catch (e) { console.log("Erro na telemetria"); }
+            } catch (e) { console.log("Erro ao atualizar telemetria"); }
         }
-        setInterval(atualizarStats, 3000); // Atualiza a cada 3 segundos
+        // Executa a cada 3 segundos
+        setInterval(atualizarStats, 3000);
     </script>
 </head>
 <body class="bg-[#0f172a] text-slate-200 p-6 md:p-12">
     <div class="max-w-5xl mx-auto">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10" translate="no">
             <div class="bg-[#1e293b] p-6 rounded-3xl border border-slate-700 shadow-xl">
                 <p class="text-slate-400 text-xs font-bold uppercase mb-2">CPU</p>
                 <div class="flex items-center gap-4">
@@ -55,7 +56,7 @@
                 </div>
             </div>
             <div class="bg-[#1e293b] p-6 rounded-3xl border border-slate-700 shadow-xl">
-                <p class="text-slate-400 text-xs font-bold uppercase mb-2">Disco</p>
+                <p class="text-slate-400 text-xs font-bold uppercase mb-2">DISK</p>
                 <div class="flex items-center gap-4">
                     <span id="disk-val" class="text-xl font-black text-white">{{ stats.disk }}%</span>
                     <div class="flex-1 bg-slate-900 h-2 rounded-full overflow-hidden">
@@ -66,7 +67,7 @@
         </div>
 
         <h1 class="text-3xl font-bold mb-10 text-white flex items-center gap-3">🚀 Centro de Comando</h1>
-        
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
             <aside class="bg-[#1e293b] p-8 rounded-3xl border border-slate-700 shadow-2xl h-fit">
                 <h2 class="text-xl font-bold mb-6 text-white text-center">Novo Projeto</h2>
@@ -86,7 +87,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-700/50">
                         {% for p in projetos %}
-                        <tr class="hover:bg-slate-700/20 transition-all">
+                        <tr class="hover:bg-slate-700/20">
                             <td class="p-5 font-bold text-white">{{ p.nome }}</td>
                             <td class="p-5">
                                 <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold {{ 'bg-green-500/10 text-green-400' if p.status == 'online' else 'bg-red-500/10 text-red-400' }}">

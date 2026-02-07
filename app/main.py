@@ -7,17 +7,18 @@ import time
 import os
 import psutil
 
-# v17.0.0 - Arquitetura Dinâmica com Polling [cite: 2026-01-25]
+# v17.1.0 - Orquestrador com Telemetria em Tempo Real [cite: 2026-01-25]
 app = FastAPI()
 templates = Jinja2Templates(directory="app/templates")
 SCRIPTS_DIR = "/home/felicruel/scripts"
 
 def limpar_nome(texto):
+    """Remove códigos ANSI para processamento correto"""
     return re.sub(r'\x1b\[[0-9;]*m', '', texto).strip()
 
 @app.get("/api/stats")
 async def api_stats():
-    """Endpoint de telemetria em tempo real"""
+    """Endpoint de telemetria consumido pelo JavaScript"""
     return {
         "cpu": psutil.cpu_percent(),
         "ram": psutil.virtual_memory().percent,
@@ -27,7 +28,7 @@ async def api_stats():
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request, msg: str = None):
     try:
-        # Coleta inicial para o primeiro carregamento
+        # Snapshot inicial para o carregamento da página
         stats = {
             "cpu": psutil.cpu_percent(),
             "ram": psutil.virtual_memory().percent,
