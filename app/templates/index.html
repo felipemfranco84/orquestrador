@@ -11,7 +11,7 @@
         
         {% if debug_log %}
         <div class="mb-8 bg-black border border-blue-500/50 p-6 rounded-2xl shadow-2xl">
-            <h3 class="text-blue-400 font-bold text-xs uppercase mb-3 tracking-widest flex items-center gap-2">🕵️ Log de Sistema</h3>
+            <h3 class="text-blue-400 font-bold text-xs uppercase mb-3 tracking-widest">🕵️ Log de Sistema</h3>
             <pre class="text-xs font-mono text-gray-300 overflow-x-auto whitespace-pre-wrap">{{ debug_log }}</pre>
         </div>
         {% endif %}
@@ -30,12 +30,14 @@
 
             <main class="lg:col-span-2 bg-[#1e293b] rounded-3xl border border-slate-700 shadow-xl overflow-hidden">
                 <table class="w-full text-left">
-                    <thead class="bg-slate-800/50"><tr><th class="p-5">Projeto</th><th class="p-5">Status</th><th class="p-5 text-right">Ação</th></tr></thead>
+                    <thead class="bg-slate-800/50 text-xs font-bold uppercase text-slate-400">
+                        <tr><th class="p-5">Projeto</th><th class="p-5">Status</th><th class="p-5 text-right">Ação</th></tr>
+                    </thead>
                     <tbody class="divide-y divide-slate-700/50">
                         {% for p in projetos %}
                         <tr class="hover:bg-slate-700/20">
                             <td class="p-5 font-bold text-white">{{ p.nome }}<span class="block text-xs font-mono text-slate-500 mt-1">Porta: {{ p.porta }}</span></td>
-                            <td class="p-5"><span class="flex items-center gap-2 text-xs font-bold {{ 'text-green-400' if p.status == 'online' else 'text-red-400' }} uppercase"><span class="w-2 h-2 rounded-full {{ 'bg-green-500' if p.status == 'online' else 'bg-red-500' }}"></span>{{ p.status }}</span></td>
+                            <td class="p-5"><span class="flex items-center gap-2 text-xs font-bold {{ 'text-green-400' if p.status == 'online' else 'text-red-400' }} uppercase"><span class="w-2 h-2 rounded-full {{ 'bg-green-400' if p.status == 'online' else 'bg-red-400' }}"></span>{{ p.status }}</span></td>
                             <td class="p-5 text-right flex justify-end gap-6 items-center pt-8">
                                 <a href="{{ p.url }}" target="_blank" class="text-blue-400 hover:text-blue-300 font-semibold text-sm">Abrir</a>
                                 <form action="remover" method="post" onsubmit="return confirm('Deseja apagar {{ p.nome }}?')">
