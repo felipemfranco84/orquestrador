@@ -2,59 +2,73 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Portal Orquestrador</title>
+    <title>Centro de Comando | Orquestrador</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-900 text-gray-100 p-6">
-    <div class="max-w-5xl mx-auto">
-        <h1 class="text-3xl font-bold mb-8 text-blue-400">🚀 Centro de Comando</h1>
+<body class="bg-[#0f172a] text-slate-200 font-sans p-6 md:p-12">
+    <div class="max-w-6xl mx-auto">
+        <header class="mb-10 flex justify-between items-center">
+            <h1 class="text-3xl font-extrabold text-white">🚀 Centro de Comando</h1>
+            <div class="text-sm bg-slate-800 px-4 py-2 rounded-full border border-slate-700">
+                IP: <span class="text-blue-400">34.11.132.26</span>
+            </div>
+        </header>
 
         {% if message %}
-        <div class="bg-green-600 p-3 rounded mb-6 text-white font-bold">{{ message }}</div>
+        <div class="mb-8 p-4 bg-blue-600/20 border border-blue-500/50 rounded-xl text-blue-100 font-medium">
+            {{ message }}
+        </div>
         {% endif %}
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="bg-gray-800 p-6 rounded-lg border border-gray-700">
-                <h2 class="text-xl font-bold mb-4">Novo Projeto</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <aside class="bg-[#1e293b] p-8 rounded-3xl shadow-2xl border border-slate-700/50">
+                <h2 class="text-xl font-bold mb-6">Lançar Novo Projeto</h2>
                 <form action="/criar" method="post" class="space-y-4">
-                    <input type="text" name="nome" placeholder="Nome do App" class="w-full p-2 rounded bg-gray-700 border-gray-600" required>
-                    <input type="text" name="repo" placeholder="URL SSH do GitHub" class="w-full p-2 rounded bg-gray-700 border-gray-600" required>
-                    <button class="w-full bg-blue-600 hover:bg-blue-500 p-2 rounded font-bold">Lançar Projeto</button>
+                    <input type="text" name="nome" placeholder="nome_do_app" class="w-full bg-[#0f172a] border border-slate-600 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" required>
+                    <input type="text" name="repo" placeholder="git@github.com:user/repo.git" class="w-full bg-[#0f172a] border border-slate-600 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" required>
+                    <button class="w-full bg-blue-600 hover:bg-blue-500 transition-all py-3 rounded-xl font-bold shadow-lg shadow-blue-900/40">Criar Agora</button>
                 </form>
-                
-                <div class="mt-6 text-xs text-blue-300 bg-blue-900/30 p-3 rounded border border-blue-800">
-                    <strong>Manual Webhook:</strong><br>
-                    Payload URL: http://34.11.132.26/webhook/update<br>
-                    Content: application/json
-                </div>
-            </div>
 
-            <div class="md:col-span-2 bg-gray-800 p-6 rounded-lg border border-gray-700">
-                <h2 class="text-xl font-bold mb-4">Projetos Ativos</h2>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead>
-                            <tr class="border-b border-gray-700">
-                                <th class="py-2">Status / Projeto</th>
-                                <th class="py-2 text-right">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for p in projetos %}
-                            <tr class="border-b border-gray-700/50 hover:bg-gray-750">
-                                <td class="py-3 font-mono text-sm">{{ p }}</td>
-                                <td class="py-3 text-right">
-                                    <form action="/remover" method="post" onsubmit="return confirm('Tem certeza que deseja apagar?')">
-                                        <input type="hidden" name="nome" value="{{ p.split()[1] if ' ' in p else p }}">
-                                        <button class="text-red-500 hover:text-red-400 font-bold">Remover</button>
-                                    </form>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                <div class="mt-10 p-4 bg-slate-900/50 rounded-2xl border border-slate-700 text-xs leading-relaxed">
+                    <p class="text-slate-400 font-bold mb-2 uppercase tracking-wider">Configuração de Webhook</p>
+                    <p><b>Payload:</b> http://34.11.132.26/webhook/update</p>
+                    <p><b>Content:</b> application/json</p>
                 </div>
-            </div>
+            </aside>
+
+            <main class="lg:col-span-2 bg-[#1e293b] rounded-3xl shadow-2xl border border-slate-700/50 overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-800/50">
+                        <tr>
+                            <th class="p-5 text-slate-400 text-xs font-bold uppercase">Projeto</th>
+                            <th class="p-5 text-slate-400 text-xs font-bold uppercase">Porta</th>
+                            <th class="p-5 text-slate-400 text-xs font-bold uppercase">Status</th>
+                            <th class="p-5 text-right text-slate-400 text-xs font-bold uppercase">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700/50">
+                        {% for p in projetos %}
+                        <tr class="hover:bg-slate-700/20 transition-all">
+                            <td class="p-5 font-bold text-white">{{ p.nome }}</td>
+                            <td class="p-5 font-mono text-sm text-slate-400">{{ p.porta }}</td>
+                            <td class="p-5">
+                                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold {{ 'bg-green-500/10 text-green-400' if p.status == 'online' else 'bg-red-500/10 text-red-400' }}">
+                                    <span class="w-2 h-2 rounded-full {{ 'bg-green-500' if p.status == 'online' else 'bg-red-500' }}"></span>
+                                    {{ p.status.upper() }}
+                                </span>
+                            </td>
+                            <td class="p-5 text-right flex justify-end gap-4">
+                                <a href="{{ p.url }}" target="_blank" class="text-blue-400 hover:text-blue-300 font-medium text-sm">Abrir</a>
+                                <form action="/remover" method="post" onsubmit="return confirm('Apagar projeto permanentemente?')">
+                                    <input type="hidden" name="nome" value="{{ p.nome }}">
+                                    <button class="text-slate-500 hover:text-red-500 text-sm transition-colors">Remover</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </main>
         </div>
     </div>
 </body>
