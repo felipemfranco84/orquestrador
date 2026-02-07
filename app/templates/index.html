@@ -2,35 +2,66 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Processando...</title>
+    <title>Sincronizando...</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <meta http-equiv="refresh" content="{{ tempo }};url=/">
 </head>
-<body class="bg-[#0f172a] text-white flex flex-col items-center justify-center h-screen">
-    <div class="text-center space-y-6 max-w-md w-full p-8">
-        <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
-        <h1 class="text-2xl font-bold italic">{{ acao }}</h1>
-        <p class="text-slate-400 text-sm">Sincronizando arquivos com o servidor...</p>
-        
-        <div class="w-full bg-slate-800 rounded-full h-2 mt-6">
-            <div id="progress" class="bg-blue-600 h-2 rounded-full transition-all duration-1000" style="width: 0%"></div>
+<body class="bg-[#0f172a] text-white flex flex-col items-center justify-center h-screen font-sans">
+    <div class="text-center space-y-8 max-w-md w-full p-10 bg-[#1e293b] rounded-3xl shadow-2xl border border-slate-700">
+        <div class="relative flex items-center justify-center">
+            <div class="absolute animate-ping h-12 w-12 rounded-full bg-blue-500 opacity-20"></div>
+            <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 shadow-lg"></div>
         </div>
-        <p class="text-xs text-slate-500" id="timer">Redirecionando em {{ tempo }} segundos...</p>
+        
+        <div>
+            <h1 class="text-2xl font-black text-white mb-2">{{ acao }} {{ nome }}...</h1>
+            <p id="status-text" class="text-slate-400 text-sm animate-pulse">Comunicando com o núcleo Linux</p>
+        </div>
+
+        <div class="w-full bg-slate-900 rounded-full h-3 overflow-hidden border border-slate-700">
+            <div id="bar" class="bg-gradient-to-r from-blue-600 to-blue-400 h-full w-0 transition-all duration-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]"></div>
+        </div>
     </div>
 
     <script>
-        let total = parseInt("{{ tempo }}") || 5;
-        let atual = total;
-        const bar = document.getElementById('progress');
-        const timerTxt = document.getElementById('timer');
+        const nome = "{{ nome }}";
+        const modo = "{{ modo }}";
+        let progresso = 0;
+        const bar = document.getElementById('bar');
+        const text = document.getElementById('status-text');
 
-        const interval = setInterval(() => {
-            atual--;
-            let perc = ((total - atual) / total) * 100;
-            bar.style.width = perc + '%';
-            timerTxt.innerText = `Redirecionando em ${Math.max(0, atual)} segundos...`;
-            if (atual <= 0) clearInterval(interval);
-        }, 1000);
+        async function checarStatus() {
+            try {
+                const response = await fetch(`/status/${nome}`);
+                const data = await response.json();
+                
+                // Lógica de Sincronização Real
+                if (modo === 'criar' && data.pronto) {
+                    finalizar();
+                } else if (modo === 'remover' && !data.pronto) {
+                    finalizar();
+                } else {
+                    // Simula progresso até 90% enquanto espera
+                    if (progresso < 90) {
+                        progresso += 5;
+                        bar.style.width = progresso + '%';
+                    }
+                    text.innerText = "Aguardando confirmação do Systemd...";
+                    setTimeout(checarStatus, 2000);
+                }
+            } catch (e) {
+                setTimeout(checarStatus, 2000);
+            }
+        }
+
+        function finalizar() {
+            bar.style.width = '100%';
+            text.innerText = "Concluído! Atualizando painel...";
+            text.classList.remove('animate-pulse');
+            text.classList.add('text-green-400', 'font-bold');
+            setTimeout(() => { window.location.href = '/'; }, 1000);
+        }
+
+        checarStatus();
     </script>
 </body>
 </html>
