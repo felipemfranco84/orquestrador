@@ -2,66 +2,67 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Sincronizando...</title>
+    <title>Centro de Comando</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Função para mostrar que o servidor está trabalhando
+        function carregando(botao, texto) {
+            botao.disabled = true;
+            botao.innerHTML = `<span class="animate-pulse">⏳ ${texto}...</span>`;
+            botao.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+    </script>
 </head>
-<body class="bg-[#0f172a] text-white flex flex-col items-center justify-center h-screen font-sans">
-    <div class="text-center space-y-8 max-w-md w-full p-10 bg-[#1e293b] rounded-3xl shadow-2xl border border-slate-700">
-        <div class="relative flex items-center justify-center">
-            <div class="absolute animate-ping h-12 w-12 rounded-full bg-blue-500 opacity-20"></div>
-            <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 shadow-lg"></div>
-        </div>
+<body class="bg-[#0f172a] text-slate-200 p-6 md:p-12">
+    <div class="max-w-5xl mx-auto">
+        <h1 class="text-3xl font-bold mb-10 text-white flex items-center gap-3">🚀 Centro de Comando</h1>
         
-        <div>
-            <h1 class="text-2xl font-black text-white mb-2">{{ acao }} {{ nome }}...</h1>
-            <p id="status-text" class="text-slate-400 text-sm animate-pulse">Comunicando com o núcleo Linux</p>
+        {% if message %}
+        <div class="bg-green-600/20 border border-green-500 text-green-100 p-4 rounded-2xl mb-8 shadow-lg">
+            {{ message }}
         </div>
+        {% endif %}
 
-        <div class="w-full bg-slate-900 rounded-full h-3 overflow-hidden border border-slate-700">
-            <div id="bar" class="bg-gradient-to-r from-blue-600 to-blue-400 h-full w-0 transition-all duration-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]"></div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <aside class="bg-[#1e293b] p-8 rounded-3xl border border-slate-700 shadow-xl">
+                <h2 class="text-xl font-bold mb-6 text-white">Novo Projeto</h2>
+                <form action="criar" method="post" onsubmit="carregando(this.querySelector('button'), 'Criando')">
+                    <div class="space-y-4">
+                        <input type="text" name="nome" placeholder="nome_do_app" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <input type="text" name="repo" placeholder="git@github.com:..." class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 transition-all py-3 rounded-xl font-bold shadow-xl">Criar Agora</button>
+                    </div>
+                </form>
+            </aside>
+
+            <main class="lg:col-span-2 bg-[#1e293b] rounded-3xl border border-slate-700 shadow-xl overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-800/50 text-xs font-bold uppercase text-slate-400">
+                        <tr><th class="p-5">Projeto</th><th class="p-5">Status</th><th class="p-5 text-right">Ação</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700/50">
+                        {% for p in projetos %}
+                        <tr class="hover:bg-slate-700/20 transition-all">
+                            <td class="p-5 font-bold text-white">{{ p.nome }}<span class="block text-xs font-mono text-slate-500 mt-1">Porta: {{ p.porta }}</span></td>
+                            <td class="p-5">
+                                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold {{ 'bg-green-500/10 text-green-400' if p.status == 'online' else 'bg-red-500/10 text-red-400' }}">
+                                    <span class="w-2 h-2 rounded-full {{ 'bg-green-500' if p.status == 'online' else 'bg-red-500' }}"></span>
+                                    {{ p.status.upper() }}
+                                </span>
+                            </td>
+                            <td class="p-5 text-right flex justify-end gap-6 items-center">
+                                <a href="{{ p.url }}" target="_blank" class="text-blue-400 hover:text-blue-300 font-semibold text-sm">Abrir</a>
+                                <form action="remover" method="post" onsubmit="return confirm('Apagar {{ p.nome }}?') && carregando(this.querySelector('button'), 'Removendo')">
+                                    <input type="hidden" name="nome" value="{{ p.nome }}">
+                                    <button type="submit" class="text-slate-500 hover:text-red-500 text-sm font-medium transition-colors">Remover</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </main>
         </div>
     </div>
-
-    <script>
-        const nome = "{{ nome }}";
-        const modo = "{{ modo }}";
-        let progresso = 0;
-        const bar = document.getElementById('bar');
-        const text = document.getElementById('status-text');
-
-        async function checarStatus() {
-            try {
-                const response = await fetch(`/status/${nome}`);
-                const data = await response.json();
-                
-                // Lógica de Sincronização Real
-                if (modo === 'criar' && data.pronto) {
-                    finalizar();
-                } else if (modo === 'remover' && !data.pronto) {
-                    finalizar();
-                } else {
-                    // Simula progresso até 90% enquanto espera
-                    if (progresso < 90) {
-                        progresso += 5;
-                        bar.style.width = progresso + '%';
-                    }
-                    text.innerText = "Aguardando confirmação do Systemd...";
-                    setTimeout(checarStatus, 2000);
-                }
-            } catch (e) {
-                setTimeout(checarStatus, 2000);
-            }
-        }
-
-        function finalizar() {
-            bar.style.width = '100%';
-            text.innerText = "Concluído! Atualizando painel...";
-            text.classList.remove('animate-pulse');
-            text.classList.add('text-green-400', 'font-bold');
-            setTimeout(() => { window.location.href = '/'; }, 1000);
-        }
-
-        checarStatus();
-    </script>
 </body>
 </html>
