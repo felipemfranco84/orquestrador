@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Centro de Comando</title>
+    <title>Centro de Comando | Telemetria</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         function travaBotao(btn, msg) {
@@ -14,22 +14,46 @@
 </head>
 <body class="bg-[#0f172a] text-slate-200 p-6 md:p-12">
     <div class="max-w-5xl mx-auto">
-        <h1 class="text-3xl font-bold mb-10 text-white flex items-center gap-3">🚀 Centro de Comando</h1>
-        
-        {% if message %}
-        <div class="bg-blue-600/30 border border-blue-500 text-blue-100 p-4 rounded-2xl mb-8 font-bold">
-            {{ message }}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div class="bg-[#1e293b] p-6 rounded-3xl border border-slate-700 shadow-xl">
+                <p class="text-slate-400 text-xs font-bold uppercase mb-2">Processamento (CPU)</p>
+                <div class="flex items-center gap-4">
+                    <span class="text-2xl font-black text-white">{{ stats.cpu }}%</span>
+                    <div class="flex-1 bg-slate-900 h-2 rounded-full overflow-hidden">
+                        <div class="bg-blue-500 h-full" style="width: {{ stats.cpu }}%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-[#1e293b] p-6 rounded-3xl border border-slate-700 shadow-xl">
+                <p class="text-slate-400 text-xs font-bold uppercase mb-2">Memória RAM</p>
+                <div class="flex items-center gap-4">
+                    <span class="text-2xl font-black text-white">{{ stats.ram }}%</span>
+                    <div class="flex-1 bg-slate-900 h-2 rounded-full overflow-hidden">
+                        <div class="bg-purple-500 h-full" style="width: {{ stats.ram }}%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-[#1e293b] p-6 rounded-3xl border border-slate-700 shadow-xl">
+                <p class="text-slate-400 text-xs font-bold uppercase mb-2">Disco (SSD)</p>
+                <div class="flex items-center gap-4">
+                    <span class="text-2xl font-black text-white">{{ stats.disk }}%</span>
+                    <div class="flex-1 bg-slate-900 h-2 rounded-full overflow-hidden">
+                        <div class="bg-green-500 h-full" style="width: {{ stats.disk }}%"></div>
+                    </div>
+                </div>
+            </div>
         </div>
-        {% endif %}
+
+        <h1 class="text-3xl font-bold mb-10 text-white flex items-center gap-3">🚀 Orquestrador de Apps</h1>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
-            <aside class="bg-[#1e293b] p-8 rounded-3xl border border-slate-700 shadow-2xl">
-                <h2 class="text-xl font-bold mb-6 text-white">Novo Projeto</h2>
-                <form action="criar" method="post" onsubmit="travaBotao(this.querySelector('button'), 'Instalando')">
+            <aside class="bg-[#1e293b] p-8 rounded-3xl border border-slate-700 shadow-2xl h-fit">
+                <h2 class="text-xl font-bold mb-6 text-white text-center">Lançar App</h2>
+                <form action="criar" method="post" onsubmit="travaBotao(this.querySelector('button'), 'Configurando')">
                     <div class="space-y-4">
-                        <input type="text" name="nome" placeholder="nome_app" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl outline-none" required>
-                        <input type="text" name="repo" placeholder="git@github.com:user/repo.git" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl outline-none" required>
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-xl font-bold transition-all">Lançar Projeto</button>
+                        <input type="text" name="nome" placeholder="nome_do_app" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-white" required>
+                        <input type="text" name="repo" placeholder="git@github.com:user/repo.git" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-white" required>
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-xl font-black transition-all shadow-xl shadow-blue-900/20">CRIAR AGORA</button>
                     </div>
                 </form>
             </aside>
@@ -37,23 +61,26 @@
             <main class="lg:col-span-2 bg-[#1e293b] rounded-3xl border border-slate-700 shadow-2xl overflow-hidden">
                 <table class="w-full text-left">
                     <thead class="bg-slate-800/50 text-xs font-bold uppercase text-slate-400">
-                        <tr><th class="p-5">Projeto</th><th class="p-5">Status</th><th class="p-5 text-right">Ação</th></tr>
+                        <tr><th class="p-6">Projeto</th><th class="p-6">Status</th><th class="p-6 text-right">Gestão</th></tr>
                     </thead>
                     <tbody class="divide-y divide-slate-700/50">
                         {% for p in projetos %}
-                        <tr class="hover:bg-slate-700/20">
-                            <td class="p-5 font-bold text-white">{{ p.nome }}<span class="block text-xs text-slate-500 italic mt-1 font-mono">Porta: {{ p.porta }}</span></td>
-                            <td class="p-5">
-                                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold {{ 'bg-green-500/10 text-green-400' if p.status == 'online' else 'bg-red-500/10 text-red-400' }}">
+                        <tr class="hover:bg-slate-700/20 transition-all">
+                            <td class="p-6 font-bold text-white">
+                                {{ p.nome }}
+                                <span class="block text-xs text-slate-500 font-mono mt-1">Porta: {{ p.porta }}</span>
+                            </td>
+                            <td class="p-6">
+                                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black {{ 'bg-green-500/10 text-green-400' if p.status == 'online' else 'bg-red-500/10 text-red-400' }}">
                                     <span class="w-2 h-2 rounded-full {{ 'bg-green-500' if p.status == 'online' else 'bg-red-500' }}"></span>
                                     {{ p.status.upper() }}
                                 </span>
                             </td>
-                            <td class="p-5 text-right flex justify-end gap-6 items-center pt-8">
-                                <a href="{{ p.url }}" target="_blank" class="text-blue-400 hover:text-blue-300 font-bold text-sm">Abrir</a>
-                                <form action="remover" method="post" onsubmit="return confirm('Deseja deletar {{ p.nome }}?') && travaBotao(this.querySelector('button'), 'Deletando')">
+                            <td class="p-6 text-right flex justify-end gap-6 items-center">
+                                <a href="{{ p.url }}" target="_blank" class="text-blue-400 hover:text-blue-300 font-bold text-sm underline decoration-2 underline-offset-4">Abrir</a>
+                                <form action="remover" method="post" onsubmit="return confirm('Apagar {{ p.nome }} permanentemente?') && travaBotao(this.querySelector('button'), 'Removendo')">
                                     <input type="hidden" name="nome" value="{{ p.nome }}">
-                                    <button type="submit" class="text-slate-500 hover:text-red-500 text-sm font-medium">Remover</button>
+                                    <button type="submit" class="text-slate-500 hover:text-red-500 text-sm font-bold transition-colors">Remover</button>
                                 </form>
                             </td>
                         </tr>
