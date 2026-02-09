@@ -6,8 +6,13 @@ import re
 import time
 import os
 import psutil
+import logging # Adicionado para observabilidade
 
-# v17.3.0 - Orquestrador com Webhook e Telemetria
+# Configuração de Logs
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("Orquestrador")
+
+# v17.5.0 - Orquestrador com Webhook e Telemetria (Corrigido)
 app = FastAPI()
 templates = Jinja2Templates(directory="app/templates")
 SCRIPTS_DIR = "/home/felicruel/scripts"
@@ -52,6 +57,7 @@ async def home(request: Request, msg: str = None):
             "request": request, "projetos": projetos, "message": msg, "stats": stats
         })
     except Exception as e:
+        logger.error(f"Erro ao carregar home: {e}")
         return templates.TemplateResponse("index.html", {"request": request, "error": str(e)})
 
 @app.post("/remover")
@@ -68,21 +74,50 @@ async def criar(nome: str = Form(...), repo: str = Form(...)):
     time.sleep(5)
     return RedirectResponse(url="/orquestrador/", status_code=303)
 
-# --- NOVA ROTA ADITIVA: WEBHOOK ---
+# --- NOVA ROTA ADITIVA: WEBHOOK (CORRIGIDA) ---
 @app.post("/webhook/update")
 async def receber_webhook(request: Request):
     """
-    Recebe o sinal do GitHub e dispara a atualização automática.
+    Recebe o sinal do GitHub, valida e executa o deploy com captura de logs.
     """
     try:
         payload = await request.json()
         projeto = payload.get("repository", {}).get("name")
         
-        if projeto:
-            # Dispara o script de deploy em background.
-            subprocess.Popen([f"{SCRIPTS_DIR}/deploy_git.sh", projeto, "main"])
-            return {"status": "sucesso", "projeto": projeto, "acao": "atualizando"}
-            
-        return {"status": "ignorado", "motivo": "payload sem identificação"}
+        if not projeto:
+            logger.warning("Webhook ignorado: Payload sem nome de projeto")
+            return {"status": "ignorado", "motivo": "payload sem identificação"}
+
+        logger.info(f"🚀 Iniciando deploy automático para: {projeto}")
+        script_path = f"{SCRIPTS_DIR}/deploy_git.sh"
+
+        # Verifica se o script existe antes de tentar rodar
+        if not os.path.exists(script_path):
+             logger.error(f"Script não encontrado: {script_path}")
+             return {"status": "erro", "detalhe": "Script de deploy não encontrado no servidor"}
+
+        # Executa capturando a saída. Adicionado argumento "auto" para pular confirmação
+        processo = subprocess.run(
+            [script_path, projeto, "main", "auto"], 
+            capture_output=True, 
+            text=True
+        )
+        
+        if processo.returncode == 0:
+            logger.info(f"✅ Sucesso: {processo.stdout}")
+            return {
+                "status": "sucesso", 
+                "projeto": projeto, 
+                "log": processo.stdout.strip()
+            }
+        else:
+            logger.error(f"❌ Falha: {processo.stderr}")
+            return {
+                "status": "erro_execucao", 
+                "stdout": processo.stdout.strip(),
+                "stderr": processo.stderr.strip()
+            }
+
     except Exception as e:
+        logger.exception("Erro crítico no webhook")
         return {"status": "erro", "detalhe": str(e)}
